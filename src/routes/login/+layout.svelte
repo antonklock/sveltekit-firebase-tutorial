@@ -1,23 +1,32 @@
 <script lang="ts">
 	import { Stepper, Step } from '@skeletonlabs/skeleton';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import AnimatedRoute from '$lib/components/AnimatedRoute.svelte';
+	import { user } from '$lib/firebase';
 
-	function onStepHandler(e: {
+	let route = $page.route.id;
+
+	const onStepHandler = (e: {
 		detail: { state: { current: number; total: number }; step: number };
-	}): void {
+	}): void => {
 		const { current } = e.detail.state;
 
-		if (current === 0) {
-			goto(`/login`, { replaceState: true });
-			return;
-		} else if (current === 1) {
-			goto(`/login/username`, { replaceState: true });
-			return;
-		} else if (current === 2) {
-			goto(`/login/photo`, { replaceState: true });
-			return;
+		switch (current) {
+			case 0:
+				goto(`/login`, { replaceState: true });
+				break;
+			case 1:
+				goto(`/login/username`, { replaceState: true });
+				break;
+			case 2:
+				goto(`/login/photo`, { replaceState: true });
+				break;
+			default:
+				console.log('Unknown step');
+				break;
 		}
-	}
+	};
 </script>
 
 <div class="text-center w-screen pt-10">
@@ -26,25 +35,32 @@
 </div>
 
 <div class="pt-16">
-	<div class="card p-4 mx-10 max-w-3xl">
+	<div class="card p-4 mx-10 max-w-3xl overflow-hidden">
 		<Stepper on:step={onStepHandler}>
-			<Step>
+			<Step locked={!$user}>
 				<svelte:fragment slot="header">Login</svelte:fragment>
-				<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
-					<slot />
-				</div>
+				<class slot="navigation" class="hidden">Back</class>
+				<AnimatedRoute>
+					<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
+						<slot />
+					</div>
+				</AnimatedRoute>
 			</Step>
 			<Step>
 				<svelte:fragment slot="header">Username</svelte:fragment>
-				<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
-					<slot />
-				</div>
+				<AnimatedRoute>
+					<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
+						<slot />
+					</div>
+				</AnimatedRoute>
 			</Step>
 			<Step>
 				<svelte:fragment slot="header">Photo</svelte:fragment>
-				<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
-					<slot />
-				</div>
+				<AnimatedRoute>
+					<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
+						<slot />
+					</div>
+				</AnimatedRoute>
 			</Step>
 		</Stepper>
 	</div>
