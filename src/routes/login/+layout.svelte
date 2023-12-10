@@ -1,67 +1,94 @@
 <script lang="ts">
-	import { Stepper, Step } from '@skeletonlabs/skeleton';
+	import { user, auth, userData } from '$lib/firebase';
+	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	import { onAuthStateChanged } from 'firebase/auth';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import AnimatedRoute from '$lib/components/AnimatedRoute.svelte';
-	import { user } from '$lib/firebase';
 
-	let route = $page.route.id;
+	let progress = 0;
+	let authenticated = false;
+	let username = '';
 
-	const onStepHandler = (e: {
-		detail: { state: { current: number; total: number }; step: number };
-	}): void => {
-		const { current } = e.detail.state;
+	userData.subscribe((data) => {
+		if (data?.username) {
+			progress = 2;
+			goto('/login/photo', { replaceState: true });
+		}
+	});
 
-		switch (current) {
-			case 0:
-				goto(`/login`, { replaceState: true });
+	user.subscribe(() => {
+		if ($user) {
+			progress = 1;
+			goto('/login/username', { replaceState: true });
+			authenticated = true;
+		} else {
+			progress = 0;
+			authenticated = false;
+		}
+	});
+
+	function updateProgress() {
+		switch ($page.route.id) {
+			case '/login':
+				progress = 0;
+				console.log('/login');
 				break;
-			case 1:
-				goto(`/login/username`, { replaceState: true });
+
+			case '/login/username':
+				progress = 1;
+				console.log('/login/username');
 				break;
-			case 2:
-				goto(`/login/photo`, { replaceState: true });
+
+			case '/login/photo':
+				progress = 2;
+				console.log('/login/photo');
 				break;
+
 			default:
-				console.log('Unknown step');
+				progress = 0;
+				console.log('no such route');
 				break;
 		}
-	};
+	}
 </script>
 
-<div class="text-center w-screen pt-10">
+<div class="flex flex-col items-center w-screen pt-10">
 	<h1 class="text-8xl">Links Manager</h1>
 	<p class="text-xl pt-4">Where you can store your favorite links! 🔗</p>
 </div>
 
-<div class="pt-16">
-	<div class="card p-4 mx-10 max-w-3xl overflow-hidden">
-		<Stepper on:step={onStepHandler}>
-			<Step locked={!$user}>
-				<svelte:fragment slot="header">Login</svelte:fragment>
-				<class slot="navigation" class="hidden">Back</class>
-				<AnimatedRoute>
-					<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
-						<slot />
-					</div>
-				</AnimatedRoute>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Username</svelte:fragment>
-				<AnimatedRoute>
-					<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
-						<slot />
-					</div>
-				</AnimatedRoute>
-			</Step>
-			<Step>
-				<svelte:fragment slot="header">Photo</svelte:fragment>
-				<AnimatedRoute>
-					<div class="card variant-filled p-4 h-80 mx-4 mt-10 mb-4">
-						<slot />
-					</div>
-				</AnimatedRoute>
-			</Step>
-		</Stepper>
+<div class="flex flex-col items-center pt-16">
+	<RadioGroup class="mb-10">
+		<RadioItem
+			on:click={() => {
+				goto('/login', { replaceState: true });
+			}}
+			bind:group={progress}
+			name="justify"
+			value={0}
+			disabled={false}>1</RadioItem
+		>
+		<RadioItem
+			on:click={() => {
+				goto('/login/username', { replaceState: true });
+			}}
+			bind:group={progress}
+			name="justify"
+			value={1}
+			disabled={!$user}>2</RadioItem
+		>
+		<RadioItem
+			on:click={() => {
+				goto('/login/photo', { replaceState: true });
+			}}
+			bind:group={progress}
+			name="justify"
+			value={2}
+			disabled={!$userData?.username}>3</RadioItem
+		>
+	</RadioGroup>
+
+	<div>
+		<slot />
 	</div>
 </div>
