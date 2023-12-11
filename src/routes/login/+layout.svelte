@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { user, auth, userData } from '$lib/firebase';
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
-	import { onAuthStateChanged } from 'firebase/auth';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 
